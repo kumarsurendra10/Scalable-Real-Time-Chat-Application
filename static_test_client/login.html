@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Login | Chat App</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #172033;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            width: min(400px, 92vw);
+            border-radius: 16px;
+            box-shadow: 0 12px 35px #0f172a15;
+        }
+
+        input,
+        button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: 0;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: .6;
+        }
+
+        a {
+            color: #2563eb;
+        }
+
+        #status {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card">
+        <h1>Welcome back</h1>
+        <p>Login to continue chatting.</p>
+
+        <form id="loginForm">
+            <input id="username" placeholder="Username" required autocomplete="username">
+            <input id="password" type="password" placeholder="Password" required autocomplete="current-password">
+            <button id="submitBtn" type="submit">Login</button>
+        </form>
+
+        <p>New here? <a href="register.html">Create an account</a></p>
+        <p id="status" role="status"></p>
+    </main>
+
+    <script>
+        const API = "http://127.0.0.1:8000";
+
+        document.getElementById("loginForm").addEventListener("submit", async e => {
+            e.preventDefault();
+
+            const button = document.getElementById("submitBtn");
+            const status = document.getElementById("status");
+            button.disabled = true;
+            status.textContent = "Logging in...";
+
+            try {
+                const username = document.getElementById("username").value.trim();
+                const response = await fetch(`${API}/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username,
+                        password: document.getElementById("password").value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail
+                        ? (typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail))
+                        : `Login failed (${response.status})`);
+                }
+
+                if (!data.access_token) {
+                    throw new Error("Login response did not include an access token.");
+                }
+
+                //localStorage.setItem("chatToken", data.access_token);
+                localStorage.setItem("chatToken", data.access_token);
+                localStorage.setItem("chatUsername", data.user?.username || username);
+
+                if (data.user?.id != null) {
+                    localStorage.setItem("chatUserId", String(data.user.id));
+                }
+                localStorage.setItem("chatUsername", data.user?.username || username);
+
+                window.location.replace("dashboard.html");
+            } catch (error) {
+                status.textContent = "Error: " + error.message;
+            } finally {
+                button.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Chat App</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #e9edef;
+            color: #222;
+        }
+
+        /* Header */
+        .header {
+            background: #008069;
+            color: white;
+            padding: 15px 22px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #d9fdd3;
+            color: #075e54;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .status {
+            font-size: 12px;
+            margin-top: 4px;
+            color: #e0f2ed;
+        }
+
+        .logout {
+            border: 1px solid white;
+            background: transparent;
+            color: white;
+            padding: 9px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .logout:hover {
+            background: #006b59;
+        }
+
+        /* Main layout */
+        .container {
+            max-width: 1000px;
+            margin: 25px auto;
+            padding: 0 15px;
+        }
+
+        .welcome {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid #25d366;
+        }
+
+        .welcome h2 {
+            margin-bottom: 7px;
+            color: #075e54;
+            font-size: 22px;
+        }
+
+        .welcome p {
+            color: #667781;
+            font-size: 14px;
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: white;
+            padding: 17px;
+            border-radius: 8px;
+            border-bottom: 3px solid #25d366;
+        }
+
+        .stat-card p {
+            color: #667781;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card h3 {
+            font-size: 25px;
+            color: #075e54;
+        }
+
+        /* Conversations */
+        .chat-panel {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background: #f0f2f5;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-header h3 {
+            color: #075e54;
+            font-size: 18px;
+        }
+
+        .create-btn {
+            background: #008069;
+            color: white;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .create-btn:hover {
+            background: #006b59;
+        }
+
+        .search-box {
+            width: calc(100% - 24px);
+            margin: 12px;
+            padding: 12px 15px;
+            border: none;
+            outline: none;
+            background: #f0f2f5;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .room-list {
+            min-height: 180px;
+        }
+
+        .room-item {
+            padding: 14px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #e9edef;
+        }
+
+        .room-item:hover {
+            background: #f7f9fa;
+        }
+
+        .room-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .room-avatar {
+            width: 45px;
+            height: 45px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #d9fdd3;
+            color: #075e54;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .room-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            overflow-wrap: anywhere;
+        }
+
+        .room-type {
+            color: #667781;
+            font-size: 12px;
+        }
+
+        .open-btn {
+            background: #25d366;
+            color: #075e54;
+            border: none;
+            padding: 9px 13px;
+            border-radius: 5px;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .open-btn:hover {
+            background: #1fbd5c;
+        }
+
+        .empty {
+            padding: 35px 15px;
+            text-align: center;
+            color: #667781;
+        }
+
+        /* Create room popup */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+        }
+
+        .modal-box {
+            background: white;
+            width: 100%;
+            max-width: 400px;
+            padding: 22px;
+            border-radius: 9px;
+        }
+
+        .modal-box h3 {
+            color: #075e54;
+            margin-bottom: 18px;
+        }
+
+        .modal-box label {
+            display: block;
+            margin: 12px 0 6px;
+            font-size: 14px;
+        }
+
+        .modal-box input,
+        .modal-box select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d1d7db;
+            border-radius: 5px;
+            outline-color: #008069;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .cancel-btn {
+            background: #e9edef;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .message {
+            padding: 10px 15px;
+            font-size: 14px;
+            color: #b42318;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 12px;
+            }
+
+            .container {
+                margin: 15px auto;
+                padding: 0 10px;
+            }
+
+            .stats {
+                gap: 8px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-card h3 {
+                font-size: 21px;
+            }
+
+            .panel-header {
+                padding: 12px;
+            }
+
+            .panel-header h3 {
+                font-size: 16px;
+            }
+
+            .create-btn {
+                padding: 9px;
+                font-size: 12px;
+            }
+
+            .room-item {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="user-info">
+            <div class="avatar" id="userAvatar">U</div>
+            <div>
+                <div class="user-name" id="userName">User</div>
+                <div class="status">● My Chat App</div>
+            </div>
+        </div>
+
+        <button class="logout" onclick="logout()">Logout</button>
+    </header>
+
+    <main class="container">
+
+        <section class="welcome">
+            <h2>Welcome back!</h2>
+            <p>Your conversations, all in one place.</p>
+        </section>
+
+        <section class="stats">
+            <div class="stat-card">
+                <p>Total Conversations</p>
+                <h3 id="totalRooms">0</h3>
+            </div>
+
+            <div class="stat-card">
+                <p>Group Chats</p>
+                <h3 id="groupRooms">0</h3>
+            </div>
+        </section>
+
+        <section class="chat-panel">
+            <div class="panel-header">
+                <h3>My Conversations</h3>
+                <button class="create-btn" onclick="openModal()">
+                    + New Chat
+                </button>
+            </div>
+
+            <input type="text" class="search-box" id="searchInput" placeholder="Search conversations..."
+                oninput="filterRooms()">
+
+            <div class="room-list" id="roomList">
+                <div class="empty">Loading conversations...</div>
+            </div>
+
+            <div class="message" id="errorMessage"></div>
+        </section>
+
+    </main>
+
+    <!-- Create Room Modal -->
+    <div class="modal" id="roomModal">
+        <div class="modal-box">
+            <h3>Create New Chat</h3>
+
+            <form id="roomForm">
+                <label for="roomName">Chat / Room Name</label>
+                <input id="roomName" type="text" placeholder="Enter room name" required>
+
+                <label for="roomType">Chat Type</label>
+                <select id="roomType">
+                    <option value="false">Personal Chat</option>
+                    <option value="true">Group Chat</option>
+                </select>
+
+                <label for="members">
+                    Members' usernames (optional)
+                </label>
+                <input id="members" type="text" placeholder="e.g. Rahul, Amit">
+
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" onclick="closeModal()">
+                        Cancel
+                    </button>
+
+                    <button type="submit" class="create-btn">
+                        Create Chat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000";
+        const token = localStorage.getItem("chatToken");
+        const username = localStorage.getItem("chatUsername") || "User";
+
+        let allRooms = [];
+
+        // Show logged-in username on the top-left
+        document.getElementById("userName").textContent = username;
+        document.getElementById("userAvatar").textContent =
+            username.charAt(0).toUpperCase();
+
+        if (!token) {
+            window.location.href = "login.html";
+        }
+
+        async function apiRequest(url, options = {}) {
+            const response = await fetch(API_BASE + url, {
+                ...options,
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token,
+                    ...(options.headers || {})
+                }
+            });
+
+            if (response.status === 401) {
+                logout();
+                throw new Error("Session expired. Please login again.");
+            }
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.detail || "Something went wrong.");
+            }
+
+            return data;
+        }
+
+        async function loadRooms() {
+            const list = document.getElementById("roomList");
+
+            try {
+                const data = await apiRequest("/rooms");
+                allRooms = Array.isArray(data) ? data : (data.rooms || []);
+                renderRooms(allRooms);
+
+                document.getElementById("totalRooms").textContent =
+                    allRooms.length;
+
+                document.getElementById("groupRooms").textContent =
+                    allRooms.filter(room => room.is_group).length;
+
+            } catch (error) {
+                list.innerHTML =
+                    '<div class="empty">Could not load conversations.</div>';
+
+                showError(error.message);
+            }
+        }
+
+        function renderRooms(rooms) {
+            const list = document.getElementById("roomList");
+            list.innerHTML = "";
+
+            if (!rooms.length) {
+                list.innerHTML =
+                    '<div class="empty">No conversations yet. Click + New Chat to start.</div>';
+                return;
+            }
+
+            rooms.forEach(room => {
+                const name = room.name || "Unnamed Room";
+                const roomId = room.id ?? room.room_id;
+                const type = room.is_group ? "Group Chat" : "Personal Chat";
+
+                const item = document.createElement("div");
+                item.className = "room-item";
+
+                const left = document.createElement("div");
+                left.className = "room-left";
+
+                const avatar = document.createElement("div");
+                avatar.className = "room-avatar";
+                avatar.textContent = name.charAt(0).toUpperCase();
+
+                const details = document.createElement("div");
+
+                const roomName = document.createElement("div");
+                roomName.className = "room-name";
+                roomName.textContent = name;
+
+                const roomType = document.createElement("div");
+                roomType.className = "room-type";
+                roomType.textContent = type;
+
+                details.append(roomName, roomType);
+                left.append(avatar, details);
+
+                const openButton = document.createElement("button");
+                openButton.className = "open-btn";
+                openButton.textContent = "Open Chat";
+
+                openButton.onclick = () => {
+                    window.location.href =
+                        "chat.html?roomId=" + encodeURIComponent(roomId) +
+                        "&roomName=" + encodeURIComponent(name);
+                };
+
+                item.append(left, openButton);
+                list.appendChild(item);
+            });
+        }
+
+        function filterRooms() {
+            const query = document
+                .getElementById("searchInput")
+                .value.toLowerCase()
+                .trim();
+
+            const filtered = allRooms.filter(room =>
+                (room.name || "Unnamed Room").toLowerCase().includes(query)
+            );
+
+            renderRooms(filtered);
+        }
+
+        function openModal() {
+            document.getElementById("roomModal").style.display = "flex";
+            document.getElementById("errorMessage").textContent = "";
+        }
+
+        function closeModal() {
+            document.getElementById("roomModal").style.display = "none";
+        }
+
+        async function createRoom(event) {
+            event.preventDefault();
+
+            const name = document.getElementById("roomName").value.trim();
+            const isGroup =
+                document.getElementById("roomType").value === "true";
+
+            const members = document.getElementById("members").value
+                .split(",")
+                .map(member => member.trim())
+                .filter(Boolean);
+
+            if (!name) {
+                showError("Please enter a chat name.");
+                return;
+            }
+
+            try {
+                const room = await apiRequest("/rooms", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        name: name,
+                        is_group: isGroup,
+                        member_usernames: members
+                    })
+                });
+
+                closeModal();
+                document.getElementById("roomForm").reset();
+
+                const roomId = room.id ?? room.room_id;
+
+                if (roomId != null) {
+                    window.location.href =
+                        "chat.html?roomId=" + encodeURIComponent(roomId) +
+                        "&roomName=" + encodeURIComponent(room.name || name);
+                } else {
+                    await loadRooms();
+                }
+
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function showError(message) {
+            document.getElementById("errorMessage").textContent = message;
+        }
+
+        function logout() {
+            localStorage.removeItem("chatToken");
+            localStorage.removeItem("chatUsername");
+            window.location.href = "login.html";
+        }
+
+        document.getElementById("roomForm")
+            .addEventListener("submit", createRoom);
+
+        loadRooms();
+    </script>
+
+</body>
+
+</html>

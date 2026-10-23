@@ -1,0 +1,982 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatApp | Messages</title>
+
+    <style>
+        :root {
+            --primary: #128c7e;
+            --primary-dark: #075e54;
+            --chat-bg: #efe9e2;
+            --my-message: #d9fdd3;
+            --other-message: #ffffff;
+            --text: #202c33;
+            --muted: #667781;
+            --border: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+            color: var(--text);
+        }
+
+        body {
+            background: #f5f5f5;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* Main layout: header, messages, composer */
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--chat-bg);
+        }
+
+        /* Fixed-height top bar */
+        .chat-header {
+            flex: 0 0 64px;
+            min-height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 18px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .room-avatar {
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .room-info {
+            min-width: 0;
+        }
+
+        .room-info h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .connection-status {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .connection-status.connected {
+            color: #12805c;
+        }
+
+        .connection-status.disconnected {
+            color: #c0392b;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .header-button {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--text);
+            padding: 9px 12px;
+        }
+
+        .header-button:hover {
+            background: #f3f4f6;
+        }
+
+        /* ONLY this area scrolls */
+        .messages-container {
+            flex: 1 1 auto;
+            min-height: 0;
+            width: 100%;
+            padding: 18px clamp(12px, 4vw, 44px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            scrollbar-gutter: stable;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .messages-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.18);
+            border-radius: 8px;
+        }
+
+        .message-row {
+            width: 100%;
+            display: flex;
+            flex: 0 0 auto;
+        }
+
+        .message-row.mine {
+            justify-content: flex-end;
+        }
+
+        .message-row.theirs {
+            justify-content: flex-start;
+        }
+
+        .message-bubble {
+            width: fit-content;
+            min-width: 90px;
+            max-width: min(72%, 680px);
+            padding: 10px 12px 7px;
+            border-radius: 10px;
+            background: var(--other-message);
+            box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+            overflow-wrap: anywhere;
+        }
+
+        .message-row.mine .message-bubble {
+            background: var(--my-message);
+            border-top-right-radius: 3px;
+        }
+
+        .message-row.theirs .message-bubble {
+            border-top-left-radius: 3px;
+        }
+
+        .message-sender {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 5px;
+        }
+
+        .message-content {
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .message-time {
+            margin-top: 5px;
+            text-align: right;
+            color: var(--muted);
+            font-size: 10px;
+        }
+
+        .system-message {
+            align-self: center;
+            flex: 0 0 auto;
+            max-width: 90%;
+            padding: 7px 12px;
+            margin: 4px 0;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            color: #52616b;
+            font-size: 12px;
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+
+        .empty-state {
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Fixed bottom input bar */
+        .chat-input-area {
+            flex: 0 0 auto;
+            width: 100%;
+            padding: 12px clamp(12px, 3vw, 28px);
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            position: relative;
+            z-index: 2;
+        }
+
+        .chat-form {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .message-input {
+            flex: 1 1 auto;
+            width: 0;
+            min-width: 0;
+            height: 46px;
+            padding: 0 16px;
+            border: 1px solid #dce3e8;
+            border-radius: 24px;
+            background: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .message-input:focus {
+            border-color: var(--primary);
+        }
+
+        .send-button {
+            flex: 0 0 auto;
+            min-width: 78px;
+            height: 44px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 24px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .send-button:hover {
+            background: var(--primary-dark);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .footer-status {
+            margin-top: 7px;
+            min-height: 14px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        @media (max-width: 600px) {
+            .chat-header {
+                flex-basis: 58px;
+                min-height: 58px;
+                padding: 8px 10px;
+            }
+
+            .room-avatar {
+                width: 36px;
+                height: 36px;
+                flex-basis: 36px;
+            }
+
+            .room-info h1 {
+                font-size: 14px;
+            }
+
+            .header-button {
+                padding: 8px;
+                font-size: 12px;
+            }
+
+            .messages-container {
+                padding: 12px 10px;
+                gap: 8px;
+            }
+
+            .message-bubble {
+                max-width: 86%;
+            }
+
+            .chat-input-area {
+                padding: 8px 10px;
+            }
+
+            .send-button {
+                min-width: 62px;
+                padding: 0 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="chat-container">
+
+        <header class="chat-header">
+            <div class="header-left">
+                <div class="room-avatar" id="roomAvatar">C</div>
+
+                <div class="room-info">
+                    <h1 id="roomTitle">Chat Room</h1>
+                    <div
+                        id="connectionStatus"
+                        class="connection-status"
+                        role="status"
+                        aria-live="polite"
+                    >
+                        Connecting...
+                    </div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button
+                    type="button"
+                    class="header-button"
+                    id="reconnectButton"
+                >
+                    Reconnect
+                </button>
+
+                <button
+                    type="button"
+                    class="header-button"
+                    id="backButton"
+                >
+                    Back
+                </button>
+            </div>
+        </header>
+
+        <section
+            class="messages-container"
+            id="messagesContainer"
+            aria-label="Chat messages"
+            aria-live="polite"
+        >
+            <div class="empty-state" id="emptyState">
+                Loading messages...
+            </div>
+        </section>
+
+        <footer class="chat-input-area">
+            <form class="chat-form" id="chatForm">
+                <input
+                    class="message-input"
+                    id="messageInput"
+                    type="text"
+                    placeholder="Type a message..."
+                    maxlength="4000"
+                    autocomplete="off"
+                    aria-label="Type a message"
+                    required
+                >
+
+                <button
+                    class="send-button"
+                    id="sendButton"
+                    type="submit"
+                >
+                    Send
+                </button>
+            </form>
+
+            <div class="footer-status" id="footerStatus">
+                Initializing chat...
+            </div>
+        </footer>
+
+    </main>
+
+    <script>
+        "use strict";
+
+        // Keep this URL consistent with your running FastAPI server.
+        const API_BASE = "http://127.0.0.1:8000";
+
+        const token = localStorage.getItem("chatToken");
+        const currentUsername =
+            localStorage.getItem("chatUsername") || "You";
+
+        const storedUserId = localStorage.getItem("chatUserId");
+        const currentUserId = storedUserId
+            ? Number(storedUserId)
+            : null;
+
+        const params = new URLSearchParams(window.location.search);
+        const roomId = params.get("roomId");
+        const roomName = params.get("roomName") || "Chat Room";
+
+        const messagesContainer =
+            document.getElementById("messagesContainer");
+        const emptyState = document.getElementById("emptyState");
+        const connectionStatus =
+            document.getElementById("connectionStatus");
+        const footerStatus = document.getElementById("footerStatus");
+        const messageInput = document.getElementById("messageInput");
+        const sendButton = document.getElementById("sendButton");
+        const chatForm = document.getElementById("chatForm");
+
+        let socket = null;
+        let reconnectTimer = null;
+        let reconnectAttempts = 0;
+        let manuallyClosed = false;
+        let historyLoaded = false;
+        let isSending = false;
+
+        // Prevent the same database message from rendering more than once.
+        const renderedMessageIds = new Set();
+
+        // Also deduplicate repeated system/presence events briefly.
+        const recentSystemEvents = new Set();
+
+        document.getElementById("roomTitle").textContent = roomName;
+        document.getElementById("roomAvatar").textContent =
+            roomName.trim().charAt(0).toUpperCase() || "C";
+
+        function setConnectionStatus(text, state = "") {
+            connectionStatus.textContent = text;
+            connectionStatus.className =
+                "connection-status" + (state ? " " + state : "");
+        }
+
+        function setFooterStatus(text) {
+            footerStatus.textContent = text;
+        }
+
+        function showEmptyState(text) {
+            emptyState.textContent = text;
+            emptyState.style.display = "block";
+        }
+
+        function hideEmptyState() {
+            emptyState.style.display = "none";
+        }
+
+        function isNearBottom() {
+            const distance =
+                messagesContainer.scrollHeight -
+                messagesContainer.scrollTop -
+                messagesContainer.clientHeight;
+
+            return distance < 140;
+        }
+
+        function scrollToBottom(smooth = false) {
+            messagesContainer.scrollTo({
+                top: messagesContainer.scrollHeight,
+                behavior: smooth ? "smooth" : "auto"
+            });
+        }
+
+        function formatTime(value) {
+            if (!value) {
+                return new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+            }
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return "";
+            }
+
+            return date.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        }
+
+        function addSystemMessage(text, eventKey = null) {
+            if (eventKey) {
+                if (recentSystemEvents.has(eventKey)) {
+                    return;
+                }
+
+                recentSystemEvents.add(eventKey);
+
+                // Keep this temporary event cache bounded.
+                if (recentSystemEvents.size > 200) {
+                    const first = recentSystemEvents.values().next().value;
+                    recentSystemEvents.delete(first);
+                }
+            }
+
+            hideEmptyState();
+
+            const item = document.createElement("div");
+            item.className = "system-message";
+            item.textContent = text;
+
+            messagesContainer.appendChild(item);
+            scrollToBottom();
+        }
+
+        function getSenderName(message) {
+            if (
+                message.sender_id != null &&
+                currentUserId != null &&
+                Number(message.sender_id) === currentUserId
+            ) {
+                return "You";
+            }
+
+            if (
+                message.sender &&
+                typeof message.sender === "object" &&
+                message.sender.username
+            ) {
+                return message.sender.username;
+            }
+
+            if (message.sender_username) {
+                return message.sender_username;
+            }
+
+            if (
+                message.sender_id != null &&
+                currentUserId != null &&
+                Number(message.sender_id) === currentUserId
+            ) {
+                return "You";
+            }
+
+            return message.sender_id != null
+                ? "User #" + message.sender_id
+                : "User";
+        }
+
+        function renderMessage(message, options = {}) {
+            if (!message || typeof message !== "object") {
+                return;
+            }
+
+            // Database IDs let history and WebSocket events share one UI entry.
+            if (message.id != null) {
+                const messageId = String(message.id);
+
+                if (renderedMessageIds.has(messageId)) {
+                    return;
+                }
+
+                renderedMessageIds.add(messageId);
+            }
+
+            const shouldStickToBottom =
+                options.forceScroll === true || isNearBottom();
+
+            hideEmptyState();
+
+            const mine =
+                currentUserId != null &&
+                message.sender_id != null &&
+                Number(message.sender_id) === currentUserId;
+
+            const row = document.createElement("div");
+            row.className = "message-row " + (mine ? "mine" : "theirs");
+
+            const bubble = document.createElement("article");
+            bubble.className = "message-bubble";
+
+            const sender = document.createElement("div");
+            sender.className = "message-sender";
+            sender.textContent = getSenderName(message);
+
+            const content = document.createElement("div");
+            content.className = "message-content";
+            content.textContent = String(message.content ?? "");
+
+            const time = document.createElement("div");
+            time.className = "message-time";
+            time.textContent = formatTime(message.created_at);
+
+            bubble.append(sender, content, time);
+            row.appendChild(bubble);
+            messagesContainer.appendChild(row);
+
+            if (shouldStickToBottom) {
+                scrollToBottom();
+            }
+        }
+
+        async function loadMessageHistory() {
+            try {
+                const response = await fetch(
+                    `${API_BASE}/rooms/${encodeURIComponent(roomId)}/messages?limit=50`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Authorization": `Bearer ${token}`,
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+
+                if (response.status === 401 || response.status === 403) {
+                    throw new Error(
+                        "You are not authorized to view these messages. Sign in again or join the room."
+                    );
+                }
+
+                if (!response.ok) {
+                    throw new Error(
+                        `Could not load messages (HTTP ${response.status}).`
+                    );
+                }
+
+                const data = await response.json();
+
+                // Supports APIs returning either an array or an object wrapper.
+                const messages = Array.isArray(data)
+                    ? data
+                    : Array.isArray(data.messages)
+                        ? data.messages
+                        : Array.isArray(data.items)
+                            ? data.items
+                            : [];
+
+                // Preserve the server's chronological order.
+                messages.forEach(message => {
+                    renderMessage(message, { forceScroll: false });
+                });
+
+                historyLoaded = true;
+
+                if (messages.length === 0 &&
+                    messagesContainer.querySelectorAll(".message-row").length === 0) {
+                    showEmptyState("No messages yet. Start the conversation!");
+                } else {
+                    hideEmptyState();
+                }
+
+                // Initial history load should open at the latest message.
+                scrollToBottom();
+            } catch (error) {
+                console.error("Message history error:", error);
+                setFooterStatus(error.message);
+            }
+        }
+
+        function closeSocket() {
+            if (socket) {
+                const oldSocket = socket;
+                socket = null;
+
+                oldSocket.onopen = null;
+                oldSocket.onmessage = null;
+                oldSocket.onerror = null;
+                oldSocket.onclose = null;
+
+                if (
+                    oldSocket.readyState === WebSocket.OPEN ||
+                    oldSocket.readyState === WebSocket.CONNECTING
+                ) {
+                    oldSocket.close();
+                }
+            }
+        }
+
+        function scheduleReconnect() {
+            if (manuallyClosed || reconnectTimer) {
+                return;
+            }
+
+            reconnectAttempts += 1;
+
+            const delay = Math.min(
+                1000 * Math.pow(2, reconnectAttempts - 1),
+                10000
+            );
+
+            setFooterStatus(
+                `Connection lost. Reconnecting in ${Math.ceil(delay / 1000)}s...`
+            );
+
+            reconnectTimer = setTimeout(() => {
+                reconnectTimer = null;
+                connectWebSocket();
+            }, delay);
+        }
+
+        function connectWebSocket() {
+            if (!token || !roomId) {
+                setConnectionStatus("Missing login or room", "disconnected");
+                setFooterStatus("Please sign in and open a valid chat room.");
+                return;
+            }
+
+            if (
+                socket &&
+                (
+                    socket.readyState === WebSocket.OPEN ||
+                    socket.readyState === WebSocket.CONNECTING
+                )
+            ) {
+                return;
+            }
+
+            const wsBase = API_BASE.replace(/^http:/, "ws:")
+                                  .replace(/^https:/, "wss:");
+
+            const url =
+                `${wsBase}/ws/rooms/${encodeURIComponent(roomId)}` +
+                `?token=${encodeURIComponent(token)}`;
+
+            setConnectionStatus("Connecting...");
+            setFooterStatus("Connecting to chat server...");
+
+            const thisSocket = new WebSocket(url);
+            socket = thisSocket;
+
+            thisSocket.onopen = async () => {
+                if (socket !== thisSocket) {
+                    return;
+                }
+
+                reconnectAttempts = 0;
+                setConnectionStatus("Connected", "connected");
+                setFooterStatus("Connected to room " + roomId);
+
+                // Load history after the connection opens.
+                // The message ID Set filters events that overlap with history.
+                if (!historyLoaded) {
+                    await loadMessageHistory();
+                }
+            };
+
+            thisSocket.onmessage = event => {
+                if (socket !== thisSocket) {
+                    return;
+                }
+
+                let data;
+
+                try {
+                    data = JSON.parse(event.data);
+                } catch (error) {
+                    console.warn("Invalid WebSocket event:", event.data);
+                    return;
+                }
+
+                switch (data.type) {
+                    case "message":
+                        renderMessage(data);
+                        break;
+
+                    case "presence": {
+                        const userId = data.user_id;
+                        const isOnline = Boolean(data.online);
+
+                        // Avoid showing presence notifications for ourselves.
+                        if (
+                            currentUserId == null ||
+                            Number(userId) !== currentUserId
+                        ) {
+                            const label = isOnline
+                                ? `User #${userId} came online.`
+                                : `User #${userId} went offline.`;
+
+                            addSystemMessage(
+                                label,
+                                `presence-${userId}-${isOnline}`
+                            );
+                        }
+                        break;
+                    }
+
+                    case "typing":
+                        // Typing indicator can be added here if needed.
+                        break;
+
+                    case "read_receipt":
+                        // Read-receipt UI can be added here if needed.
+                        break;
+
+                    case "pong":
+                        break;
+
+                    case "error":
+                        setFooterStatus(
+                            data.detail || "The server reported an error."
+                        );
+                        break;
+
+                    default:
+                        console.debug("Unhandled WebSocket event:", data);
+                }
+            };
+
+            thisSocket.onerror = () => {
+                if (socket === thisSocket) {
+                    setConnectionStatus("Connection error", "disconnected");
+                }
+            };
+
+            thisSocket.onclose = event => {
+                if (socket !== thisSocket) {
+                    return;
+                }
+
+                socket = null;
+
+                if (manuallyClosed) {
+                    return;
+                }
+
+                setConnectionStatus("Disconnected", "disconnected");
+
+                if (event.code === 4401) {
+                    setFooterStatus(
+                        "Your login has expired. Please sign in again."
+                    );
+                    return;
+                }
+
+                if (event.code === 4403) {
+                    setFooterStatus(
+                        "You are not a member of this room. Join it from the dashboard first."
+                    );
+                    return;
+                }
+
+                if (event.code === 4404) {
+                    setFooterStatus("This chat room does not exist.");
+                    return;
+                }
+
+                scheduleReconnect();
+            };
+        }
+
+        chatForm.addEventListener("submit", event => {
+            event.preventDefault();
+
+            const content = messageInput.value.trim();
+
+            if (!content || isSending) {
+                return;
+            }
+
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                setFooterStatus("Not connected. Please reconnect first.");
+                return;
+            }
+
+            isSending = true;
+            sendButton.disabled = true;
+
+            try {
+                socket.send(JSON.stringify({
+                    type: "message",
+                    content: content
+                }));
+
+                // Do not render an optimistic copy here.
+                // The server broadcasts the saved message, and its ID
+                // prevents the same message being rendered twice.
+                messageInput.value = "";
+                messageInput.focus();
+            } catch (error) {
+                console.error("Send error:", error);
+                setFooterStatus("Message could not be sent. Please try again.");
+            } finally {
+                isSending = false;
+                sendButton.disabled = false;
+            }
+        });
+
+        document.getElementById("reconnectButton").addEventListener(
+            "click",
+            () => {
+                manuallyClosed = false;
+
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = null;
+                }
+
+                closeSocket();
+                connectWebSocket();
+            }
+        );
+
+        document.getElementById("backButton").addEventListener(
+            "click",
+            () => {
+                manuallyClosed = true;
+
+                if (reconnectTimer) {
+                    clearTimeout(reconnectTimer);
+                    reconnectTimer = null;
+                }
+
+                closeSocket();
+                window.location.href = "dashboard.html";
+            }
+        );
+
+        // Authentication and room validation.
+        if (!token) {
+            window.location.href = "login.html";
+        } else if (!roomId || !/^\d+$/.test(roomId)) {
+            setConnectionStatus("Invalid room", "disconnected");
+            setFooterStatus("No valid room ID was provided.");
+            showEmptyState("Please open a chat room from the dashboard.");
+            sendButton.disabled = true;
+        } else {
+            connectWebSocket();
+        }
+
+        // Clean up reconnect timer and socket when leaving this page.
+        window.addEventListener("pagehide", () => {
+            manuallyClosed = true;
+
+            if (reconnectTimer) {
+                clearTimeout(reconnectTimer);
+                reconnectTimer = null;
+            }
+
+            closeSocket();
+        });
+    </script>
+</body>
+</html>

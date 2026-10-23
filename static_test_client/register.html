@@ -1,0 +1,707 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatApp | Create Account</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            min-height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: linear-gradient(135deg, #e8f5f2, #f4f7fb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 14px;
+            color: #202c33;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 430px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.09);
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 26px;
+        }
+
+        .brand-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #128c7e;
+            color: #ffffff;
+            font-size: 27px;
+            font-weight: bold;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 25px;
+        }
+
+        .subtitle {
+            color: #667781;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input {
+            width: 100%;
+            height: 46px;
+            border: 1px solid #d5dce2;
+            border-radius: 9px;
+            padding: 0 12px;
+            outline: none;
+            font-size: 14px;
+            background: #ffffff;
+        }
+
+        input:focus {
+            border-color: #128c7e;
+            box-shadow: 0 0 0 3px rgba(18, 140, 126, 0.10);
+        }
+
+        input.invalid {
+            border-color: #dc3545;
+        }
+
+        input.valid {
+            border-color: #198754;
+        }
+
+        .field-error {
+            display: none;
+            color: #c62828;
+            font-size: 12px;
+            line-height: 1.5;
+            margin-top: 6px;
+        }
+
+        .field-error.show {
+            display: block;
+        }
+
+        .field-hint {
+            margin-top: 6px;
+            color: #667781;
+            font-size: 12px;
+        }
+
+        .password-wrap {
+            position: relative;
+        }
+
+        .password-wrap input {
+            padding-right: 76px;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #128c7e;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .submit-button {
+            width: 100%;
+            min-height: 47px;
+            border: none;
+            border-radius: 9px;
+            background: #128c7e;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+
+        .submit-button:hover {
+            background: #075e54;
+        }
+
+        .submit-button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .form-message {
+            display: none;
+            padding: 11px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 16px;
+            overflow-wrap: anywhere;
+        }
+
+        .form-message.show {
+            display: block;
+        }
+
+        .form-message.error {
+            color: #842029;
+            background: #f8d7da;
+            border: 1px solid #f5c2c7;
+        }
+
+        .form-message.success {
+            color: #0f5132;
+            background: #d1e7dd;
+            border: 1px solid #badbcc;
+        }
+
+        .login-link {
+            margin: 22px 0 0;
+            text-align: center;
+            font-size: 14px;
+            color: #667781;
+        }
+
+        .login-link a {
+            color: #128c7e;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .register-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="register-card">
+        <div class="brand">
+            <div class="brand-icon">C</div>
+            <h1>Create account</h1>
+            <div class="subtitle">
+                Create your ChatApp account to start messaging.
+            </div>
+        </div>
+
+        <div
+            id="formMessage"
+            class="form-message"
+            role="alert"
+            aria-live="polite"
+        ></div>
+
+        <form id="registerForm" novalidate>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    placeholder="Choose a username"
+                    minlength="3"
+                    maxlength="50"
+                    autocomplete="username"
+                    required
+                >
+                <div class="field-error" id="usernameError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email address</label>
+                <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="example@gmail.com"
+                    maxlength="254"
+                    autocomplete="email"
+                    inputmode="email"
+                    spellcheck="false"
+                    required
+                    aria-describedby="emailHint emailError"
+                >
+                <div class="field-hint" id="emailHint">
+                    Enter a valid email, such as name@gmail.com.
+                </div>
+                <div class="field-error" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-wrap">
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="Create a password"
+                        minlength="8"
+                        maxlength="128"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        data-target="password"
+                    >
+                        Show
+                    </button>
+                </div>
+                <div class="field-error" id="passwordError"></div>
+                <div class="field-hint">
+                    Use at least 8 characters.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Confirm password</label>
+                <div class="password-wrap">
+                    <input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type="password"
+                        placeholder="Enter password again"
+                        autocomplete="new-password"
+                        required
+                    >
+                    <button
+                        type="button"
+                        class="toggle-password"
+                        data-target="confirmPassword"
+                    >
+                        Show
+                    </button>
+                </div>
+                <div class="field-error" id="confirmPasswordError"></div>
+            </div>
+
+            <button
+                type="submit"
+                class="submit-button"
+                id="submitButton"
+            >
+                Create account
+            </button>
+        </form>
+
+        <p class="login-link">
+            Already registered?
+            <a href="login.html">Login</a>
+        </p>
+    </main>
+
+    <script>
+        "use strict";
+
+        const API_BASE = "http://127.0.0.1:8000";
+
+        const form = document.getElementById("registerForm");
+        const usernameInput = document.getElementById("username");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const confirmPasswordInput =
+            document.getElementById("confirmPassword");
+
+        const submitButton = document.getElementById("submitButton");
+        const formMessage = document.getElementById("formMessage");
+
+        // Practical email validation:
+        // local part + @ + domain + dot + domain suffix.
+        // Examples accepted: user@gmail.com, name.user@company.co.in
+        function isValidEmail(value) {
+            const email = value.trim();
+
+            if (email.length > 254 || /\s/.test(email)) {
+                return false;
+            }
+
+            const parts = email.split("@");
+
+            if (parts.length !== 2) {
+                return false;
+            }
+
+            const [local, domain] = parts;
+
+            if (!local || local.length > 64 || !domain) {
+                return false;
+            }
+
+            if (local.startsWith(".") || local.endsWith(".") ||
+                local.includes("..")) {
+                return false;
+            }
+
+            // Allow common email local-part characters.
+            const localPattern =
+                /^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+$/;
+
+            if (!localPattern.test(local)) {
+                return false;
+            }
+
+            if (domain.length > 253 || domain.startsWith(".") ||
+                domain.endsWith(".") || domain.includes("..")) {
+                return false;
+            }
+
+            const labels = domain.split(".");
+
+            // Require a domain extension: example.com, example.co.in.
+            if (labels.length < 2) {
+                return false;
+            }
+
+            const labelPattern =
+                /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/;
+
+            if (!labels.every(label =>
+                label.length <= 63 && labelPattern.test(label)
+            )) {
+                return false;
+            }
+
+            const extension = labels[labels.length - 1];
+
+            // Require at least two letters in the final extension.
+            return /^[A-Za-z]{2,63}$/.test(extension);
+        }
+
+        function showFieldError(input, errorElement, message) {
+            errorElement.textContent = message;
+            errorElement.classList.toggle("show", Boolean(message));
+
+            input.classList.toggle("invalid", Boolean(message));
+            input.classList.toggle("valid", !message && input.value.length > 0);
+
+            input.setAttribute("aria-invalid", message ? "true" : "false");
+        }
+
+        function clearFormMessage() {
+            formMessage.textContent = "";
+            formMessage.className = "form-message";
+        }
+
+        function showFormMessage(message, type = "error") {
+            formMessage.textContent = message;
+            formMessage.className = `form-message show ${type}`;
+        }
+
+        function validateUsername() {
+            const value = usernameInput.value.trim();
+            let error = "";
+
+            if (!value) {
+                error = "Please enter a username.";
+            } else if (value.length < 3) {
+                error = "Username must contain at least 3 characters.";
+            } else if (value.length > 50) {
+                error = "Username cannot exceed 50 characters.";
+            }
+
+            showFieldError(
+                usernameInput,
+                document.getElementById("usernameError"),
+                error
+            );
+
+            return !error;
+        }
+
+        function validateEmail() {
+            const value = emailInput.value.trim();
+            let error = "";
+
+            if (!value) {
+                error = "Please enter your email address.";
+            } else if (!isValidEmail(value)) {
+                error =
+                    "Please enter a valid email address, such as name@gmail.com.";
+            }
+
+            showFieldError(
+                emailInput,
+                document.getElementById("emailError"),
+                error
+            );
+
+            return !error;
+        }
+
+        function validatePassword() {
+            const value = passwordInput.value;
+            let error = "";
+
+            if (!value) {
+                error = "Please create a password.";
+            } else if (value.length < 8) {
+                error = "Password must contain at least 8 characters.";
+            } else if (value.length > 128) {
+                error = "Password cannot exceed 128 characters.";
+            }
+
+            showFieldError(
+                passwordInput,
+                document.getElementById("passwordError"),
+                error
+            );
+
+            if (confirmPasswordInput.value) {
+                validateConfirmPassword();
+            }
+
+            return !error;
+        }
+
+        function validateConfirmPassword() {
+            let error = "";
+
+            if (!confirmPasswordInput.value) {
+                error = "Please confirm your password.";
+            } else if (
+                confirmPasswordInput.value !== passwordInput.value
+            ) {
+                error = "Passwords do not match.";
+            }
+
+            showFieldError(
+                confirmPasswordInput,
+                document.getElementById("confirmPasswordError"),
+                error
+            );
+
+            return !error;
+        }
+
+        usernameInput.addEventListener("blur", validateUsername);
+        emailInput.addEventListener("blur", validateEmail);
+        passwordInput.addEventListener("blur", validatePassword);
+        confirmPasswordInput.addEventListener(
+            "blur",
+            validateConfirmPassword
+        );
+
+        // Clear the email error as soon as the user starts correcting it.
+        emailInput.addEventListener("input", () => {
+            clearFormMessage();
+
+            if (emailInput.classList.contains("invalid") ||
+                document.getElementById("emailError").classList.contains("show")) {
+                validateEmail();
+            }
+        });
+
+        usernameInput.addEventListener("input", clearFormMessage);
+        passwordInput.addEventListener("input", clearFormMessage);
+        confirmPasswordInput.addEventListener("input", clearFormMessage);
+
+        document.querySelectorAll(".toggle-password").forEach(button => {
+            button.addEventListener("click", () => {
+                const input =
+                    document.getElementById(button.dataset.target);
+
+                const show = input.type === "password";
+                input.type = show ? "text" : "password";
+                button.textContent = show ? "Hide" : "Show";
+            });
+        });
+
+        function extractApiError(data, status) {
+            if (Array.isArray(data?.detail)) {
+                const emailError = data.detail.find(item =>
+                    Array.isArray(item.loc) &&
+                    item.loc.includes("email")
+                );
+
+                if (emailError) {
+                    return "Please enter a valid email address, such as name@gmail.com.";
+                }
+
+                const firstError = data.detail[0];
+
+                if (firstError?.loc?.includes("username")) {
+                    return "Please check your username and try again.";
+                }
+
+                if (firstError?.loc?.includes("password")) {
+                    return "Please check your password and try again.";
+                }
+
+                return "Please check the information you entered.";
+            }
+
+            if (typeof data?.detail === "string") {
+                const detail = data.detail.toLowerCase();
+
+                if (
+                    detail.includes("email") &&
+                    (detail.includes("already") ||
+                     detail.includes("exist") ||
+                     detail.includes("registered"))
+                ) {
+                    return "This email may already be registered. Try logging in.";
+                }
+
+                if (
+                    detail.includes("username") &&
+                    (detail.includes("already") ||
+                     detail.includes("exist") ||
+                     detail.includes("taken"))
+                ) {
+                    return "This username is already taken. Please choose another.";
+                }
+
+                if (detail.includes("email")) {
+                    return "Please check your email address and try again.";
+                }
+
+                if (status === 409) {
+                    return "This account may already exist. Try logging in.";
+                }
+            }
+
+            if (status === 409) {
+                return "This account may already exist. Try logging in.";
+            }
+
+            if (status >= 500) {
+                return "The server is temporarily unavailable. Please try again later.";
+            }
+
+            return "Registration failed. Please check your details and try again.";
+        }
+
+        form.addEventListener("submit", async event => {
+            event.preventDefault();
+            clearFormMessage();
+
+            // Validate everything before making the API request.
+            const validUsername = validateUsername();
+            const validEmail = validateEmail();
+            const validPassword = validatePassword();
+            const validConfirmPassword = validateConfirmPassword();
+
+            if (
+                !validUsername ||
+                !validEmail ||
+                !validPassword ||
+                !validConfirmPassword
+            ) {
+                const firstInvalid = form.querySelector(".invalid");
+
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                }
+
+                showFormMessage(
+                    "Please correct the highlighted fields before continuing."
+                );
+                return;
+            }
+
+            submitButton.disabled = true;
+            submitButton.textContent = "Creating account...";
+
+            try {
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: usernameInput.value.trim(),
+                        email: emailInput.value.trim(),
+                        password: passwordInput.value
+                    })
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    showFormMessage(
+                        extractApiError(data, response.status)
+                    );
+                    return;
+                }
+
+                if (!data.access_token) {
+                    showFormMessage(
+                        "Account response was incomplete. Please try logging in."
+                    );
+                    return;
+                }
+
+                // Use the same storage keys expected by dashboard.html/chat.html.
+                localStorage.setItem("chatToken", data.access_token);
+                localStorage.setItem("chatUsername",
+                    data.user?.username || usernameInput.value.trim());
+
+                if (data.user?.id != null) {
+                    localStorage.setItem("chatUserId", String(data.user.id));
+                } else {
+                    localStorage.removeItem("chatUserId");
+                }
+
+                showFormMessage(
+                    "Account created successfully. Opening your dashboard...",
+                    "success"
+                );
+
+                window.location.href = "dashboard.html";
+
+            } catch (error) {
+                console.error("Registration request failed:", error);
+
+                showFormMessage(
+                    "Cannot connect to the server. Please check that the chat API is running and try again."
+                );
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = "Create account";
+            }
+        });
+    </script>
+</body>
+</html>
